@@ -13,6 +13,7 @@ import sys
 from typing import Callable, Optional
 
 from .. import PRODUCT_NAME
+from ..units import format_temperature, telemetry_unit_system, temperature_value_unit
 
 
 def _apply_no_activate(win_id: int):
@@ -443,12 +444,17 @@ def _render_advanced(st: dict) -> str:
     tr = st.get("tyre_reading")
     if tr:
         reader = st.get("last_reader") or "?"
+        unit_system = telemetry_unit_system(st.get("telemetry_unit_system", "english"))
+        _, temp_unit = temperature_value_unit(0.0, unit_system)
         cells = []
         for k in ("FL", "FR", "RL", "RR"):
             z = tr.get(k) or {}
             if z:
-                cells.append(f"{k} {z.get('inner',0):.0f}/{z.get('mid',0):.0f}/{z.get('outer',0):.0f}")
-        P.append(f"<div style='color:#cea;font-size:11px'>tyre C (in/mid/out) via {_esc(reader)}: "
+                cells.append(f"{k} "
+                             f"{format_temperature(z.get('inner', 0), unit_system)}/"
+                             f"{format_temperature(z.get('mid', 0), unit_system)}/"
+                             f"{format_temperature(z.get('outer', 0), unit_system)}")
+        P.append(f"<div style='color:#cea;font-size:11px'>tyre {temp_unit} (in/mid/out) via {_esc(reader)}: "
                  f"{' '.join(cells)}</div>")
     laps = st.get("laps")
     if laps is not None:

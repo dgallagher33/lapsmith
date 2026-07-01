@@ -22,7 +22,7 @@ from .state.tune_state import Tune, TuneState, CarLimits
 from .state import store
 from .vision import read_tyres, read_tune, capture
 from . import PRODUCT_NAME
-from .units import format_speed, telemetry_unit_system
+from .units import format_speed, format_temperature, telemetry_unit_system
 
 # minimum lateral load (g) that counts as a "real corner" for the Heat capture
 LOAD_MIN_G = HIGH_G_THRESHOLD
@@ -269,13 +269,18 @@ def _validation_gate(listener: TelemetryListener, ui: UI, cfg: Config) -> "GateR
     moving = _best_moving_packet(listener) or listener.snapshot()
     if moving:
         if _looks_zero_default_temps(moving):
-            ui.say(f"   tyre temps read the 0-default ({moving.tire_temp_fl:.0f}C on all "
+            ui.say(f"   tyre temps read the 0-default ("
+                   f"{format_temperature(moving.tire_temp_fl, cfg.telemetry_unit_system)} on all "
                    "four = raw 0F) - that's a zeroed/stationary frame, not an offset "
                    "error (throttle/brake/steer already validated the insert). They will "
                    "rise once the tyres load up; not blocking on it.")
         else:
-            ui.say(f"   tyre temps C: FL {moving.tire_temp_fl:.0f} FR {moving.tire_temp_fr:.0f} "
-                   f"RL {moving.tire_temp_rl:.0f} RR {moving.tire_temp_rr:.0f} (plausible)")
+            ui.say("   tyre temps: "
+                   f"FL {format_temperature(moving.tire_temp_fl, cfg.telemetry_unit_system)} "
+                   f"FR {format_temperature(moving.tire_temp_fr, cfg.telemetry_unit_system)} "
+                   f"RL {format_temperature(moving.tire_temp_rl, cfg.telemetry_unit_system)} "
+                   f"RR {format_temperature(moving.tire_temp_rr, cfg.telemetry_unit_system)} "
+                   "(plausible)")
 
     ui.say("\nValidation PASSED - post-insert and tail fields decode correctly.")
     return GateResult(True, drivetrain=drivetrain, confirmed_packet=confirmed)

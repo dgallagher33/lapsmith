@@ -39,3 +39,18 @@ def format_speed(speed_mps: float, unit_system: str = DEFAULT_TELEMETRY_UNIT_SYS
     """Display speed with a consistent unit label."""
     value, unit = speed_value_unit(speed_mps, unit_system)
     return f"{value:.{decimals}f} {unit}"
+
+
+def temperature_value_unit(temp_c: float, unit_system: str = DEFAULT_TELEMETRY_UNIT_SYSTEM
+                           ) -> tuple[float, str]:
+    """Convert canonical Celsius into the selected display temperature unit."""
+    if telemetry_unit_system(unit_system) == TELEMETRY_UNIT_ENGLISH:
+        return temp_c * 9.0 / 5.0 + 32.0, "F"
+    return temp_c, "C"
+
+
+def format_temperature(temp_c: float, unit_system: str = DEFAULT_TELEMETRY_UNIT_SYSTEM,
+                       decimals: int = 0) -> str:
+    """Display a temperature with a consistent unit label."""
+    value, unit = temperature_value_unit(temp_c, unit_system)
+    return f"{value:.{decimals}f}{unit}"

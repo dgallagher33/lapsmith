@@ -2378,6 +2378,7 @@ class Controller:
             "console_mode": self.console_mode,
             "console_notice": self.CONSOLE_NOTICE if self.console_mode else None,
             "lan_ip": self.lan_ip() if self.console_mode else None,
+            "telemetry_unit_system": self.telemetry_unit_system,
             "temp_blind": self.temp_blind(),
             "temp_notice": self.TEMP_BLIND_NOTICE if self.temp_blind() else None,
             "budget_min": self.time_budget_min or None,

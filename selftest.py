@@ -2364,6 +2364,52 @@ def test_telemetry_display_units_v0125():
           "speed_text" in web._PAGE and "Speed ${s.live.speed_mph} mph" not in web._PAGE)
 
 
+def test_telemetry_temperature_display_units_v0126():
+    print("\n== telemetry display units: direct tyre-temp readouts ==")
+    import inspect
+    from lapsmith.gui import controller as C, overlay
+    from lapsmith import main_loop
+    from lapsmith.units import format_temperature, temperature_value_unit
+
+    f, fu = temperature_value_unit(100.0, "english")
+    c, cu = temperature_value_unit(100.0, "metric")
+    check("100C displays as 212F in English telemetry units",
+          abs(f - 212.0) < 0.001 and fu == "F")
+    check("100C stays 100C in Metric telemetry units",
+          abs(c - 100.0) < 0.001 and cu == "C")
+    check("format_temperature uses compact unit labels",
+          format_temperature(100.0, "english") == "212F"
+          and format_temperature(100.0, "metric") == "100C")
+
+    reading = {
+        "FL": {"inner": 100.0, "mid": 90.0, "outer": 80.0},
+        "FR": {"inner": 70.0, "mid": 60.0, "outer": 50.0},
+    }
+    html_f = overlay._render_advanced({
+        "live": {"speed_text": "22.4 mph", "rpm": 7000, "gear": 4,
+                 "lat_g": 1.0, "drivetrain": "AWD"},
+        "tyre_reading": reading,
+        "last_reader": "test",
+        "telemetry_unit_system": "english",
+        "phase": C.TEST,
+    })
+    check("overlay tyre-temp readout follows English telemetry units",
+          "tyre F" in html_f and "FL 212F/194F/176F" in html_f)
+    html_c = overlay._render_advanced({
+        "live": {"speed_text": "36.0 km/h", "rpm": 7000, "gear": 4,
+                 "lat_g": 1.0, "drivetrain": "AWD"},
+        "tyre_reading": reading,
+        "last_reader": "test",
+        "telemetry_unit_system": "metric",
+        "phase": C.TEST,
+    })
+    check("overlay tyre-temp readout follows Metric telemetry units",
+          "tyre C" in html_c and "FL 100C/90C/80C" in html_c)
+    src = inspect.getsource(main_loop._validation_gate)
+    check("CLI validation gate formats direct tyre-temp readouts via display helper",
+          "format_temperature" in src and "tyre temps C:" not in src)
+
+
 def test_session_fixes_v0118():
     print("\n== v0.1.18: bottoming-coverage, OCR udp fallback, no re-propose, search/bottom split, fastest lap ==")
     from lapsmith.gui import controller as C
@@ -3438,6 +3484,7 @@ if __name__ == "__main__":
     test_session_fixes_v0118()
     test_v0119_shutdown_units_compound_detection()
     test_telemetry_display_units_v0125()
+    test_telemetry_temperature_display_units_v0126()
     test_v0120_detection_pause_resilience()
     test_v0122_ocr_celsius_parser()
     test_v0123_ocr_box_coord_mapping()
