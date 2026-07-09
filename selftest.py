@@ -2363,6 +2363,13 @@ def test_telemetry_display_units_v0125():
     check("apply_setup accepts telemetry units from the setup screen path",
           live_apply["speed_unit"] == "km/h" and live_apply["speed_text"] == "36.0 km/h")
 
+    import inspect
+    from lapsmith.gui import setup_form
+    setup_src = inspect.getsource(setup_form.show_setup_dialog)
+    check("setup dialog keeps telemetry units on the display edge only",
+          "kgf/mm" in setup_src and " cm" in setup_src and "lb/in" not in setup_src
+          and "These are NOT telemetry fields" in setup_src)
+
     html = overlay._render_advanced({"live": live_met, "phase": C.TEST})
     check("overlay advanced render uses the selected telemetry unit",
           "36.0 km/h" in html and "mph" not in html.split("rpm")[0])
